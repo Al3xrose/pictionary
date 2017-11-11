@@ -9,6 +9,7 @@
 
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="http://localhost:8080/socket.io/socket.io.js"></script>
 </head>
 
 <body>
@@ -30,6 +31,72 @@
         </div><!--/.nav-collapse -->
       </div>
     </nav>
-    
+
+    <div class="container">
+    <div class="row">
+      <div class="col-md-4 col-md-offset-8" id="chat">
+        <div id="messages" style="height: 80%">
+
+        </div>
+        <input id="message" type="text" placeholder="message">
+      </div>
+
+    </div>
+  </div>
+
+  <!--Chat functionality-->
+  <script type="text/javascript">
+    var objectSocket = io.connect('http://localhost:8080/');
+
+    var strIdent = '';
+
+    objectSocket.on('hello', function(objectData) {
+      strIdent = objectData.strIdent;
+    });
+    /*
+    objectSocket.on('clients', function(objectData) {
+      jQuery('#clients')
+        .empty()
+        .append(jQuery('<option></option>')
+          .val('everyone')
+          .text('everyone')
+        )
+        .each(function() {
+          for (var i = 0; i < objectData.strClients.length; i += 1) {
+            jQuery(this)
+              .append(jQuery('<option></option>')
+                .val(objectData.strClients[i])
+                .text(objectData.strClients[i])
+              )
+            ;
+
+            if (objectData.strClients[i] === strIdent) {
+              jQuery(this).find('option').last()
+                .text(objectData.strClients[i] + ' - me')
+              ;
+            }
+          }
+        })
+      ;
+    });*/
+
+    objectSocket.on('message', function(objectData) {
+      jQuery('#output')
+        .prepend(objectData.strFrom + ': ' + objectData.strMessage + '\n')
+      ;
+    });
+
+    jQuery('body')
+      .keydown(function(event) {
+        if(jQuery(#message).is(":focus"))
+        {
+          alert(event.keyCode);
+        }
+        //objectSocket.emit('message', {
+          //'strMessage': jQuery('#message').val()
+        //});
+
+      });
+  </script>
 </body>
 </html>
