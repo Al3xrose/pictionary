@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0" />
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="http://localhost:8080/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-static-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">al3xrose.</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">home</a></li>
+          </ul>Zvcxisfwa3f
+
+
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    <div class="row">
+      <div class="col-md-8" style="height:80vh" id="canvasContainer">
+        <canvas id="canvas">
+        </canvas>
+      </div>
+      <div class="col-md-4" id="chat">
+        <pre id="messages" style="height: 80vh">
+
+        </pre>
+        <input id="message" type="text" placeholder="message">
+      </div>
+
+    </div>
+  </div>
+
+  <!--Chat/Canvas functionality-->
+  <script type="text/javascript">
+    var objectSocket = io.connect('http://localhost:8080/');
+    var canvas = jQuery('#canvas')[0];
+    var context = canvas.getContext('2d');
+    var strIdent = '';
+    var drawing = false;
+    var current = {};
+    console.log(canvas);
+    window.addEventListener('resize', onResize, false);
+    onResize();
+
+    objectSocket.on('hello', function(objectData) {
+      strIdent = objectData.strIdent;
+    });
+    objectSocket.on('message', function(objectData) {
+      jQuery('#messages')
+        .append(objectData.strFrom + ': ' + objectData.strMessage + '\n')
+        .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
+    });
+    objectSocket.on('drawing', onDrawingEvent);
+
+    //listen to enter keystroke when chat input
+    //is focused
+    jQuery('body')
+      .keydown(function(event) {
+        if(jQuery('#message').is(":focus"))
+        {
+          if(event.keyCode == 13){
+            objectSocket.emit('message', {
+              'strMessage': jQuery('#message').val()
+            });
+            jQuery('#message').val('');
+          }
+        }
+      });
+
+      canvas.addEventListener('mousedown', onMouseDown, false);
+      canvas.addEventListener('mouseup', onMouseUp, false);
+      canvas.addEventListener('mouseout', onMouseUp, false);
+      canvas.addEventListener('mousemove', throttle(onMouseMove, 10), false);
+
+    function onMouseDown(event)
+    {
+      drawing = true;
+      current.x = event.clientX - jQuery('#canvasContainer').offset().left;
+      current.y = event.clientY - jQuery('#canvasContainer').offset().top;
+      console.log('mousedown');
+    };
+
+    function onMouseUp(event){
+      if(drawing)
+      {
+        drawing = false;
+        drawLine(current.x,
+                 current.y,
+                 event.clientX - jQuery('#canvasContainer').offset().left,
+                 event.clientY - jQuery('#canvasContainer').offset().top,
+                 true);
+      }
+      console.log('mouseup');
+    }
+
+    function drawLine(x0, y0, x1, y1, emit){
+    context.beginPath();
+    context.moveTo(x0, y0);
+    context.lineTo(x1, y1);
+    context.strokeStyle = 'black';
+    context.lineWidth = 2;
+    context.stroke();
+    context.closePath();
+    console.log("draw");
+
+    if (!emit) { return; }
+    var w = canvas.width;
+    var h = canvas.height;
+
+    objectSocket.emit('drawing', {
+      x0: x0 / w,
+      y0: y0 / h,
+      x1: x1 / w,
+      y1: y1 / h
+    });
+  };
+
+  // limit the number of events per second
+  function throttle(callback, delay) {
+    var previousCall = new Date().getTime();
+    return function() {
+      var time = new Date().getTime();
+
+      if ((time - previousCall) >= delay) {
+        previousCall = time;
+        callback.apply(null, arguments);
+      }
+    };
+}
+function onMouseMove(event){
+    if (drawing)
+    {
+      drawLine(current.x, current.y, event.clientX - jQuery('#canvasContainer').offset().left, event.clientY - jQuery('#canvasContainer').offset().top, true);
+      current.x = event.clientX - jQuery('#canvasContainer').offset().left;
+      current.y = event.clientY - jQuery('#canvasContainer').offset().top;
+    }
+}
+
+function onDrawingEvent(data){
+    var w = canvas.width;
+    var h = canvas.height;
+    drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, false);
+  }
+
+  function onResize() {
+      canvas.width = jQuery('#canvasContainer').width();
+      canvas.height = jQuery('#canvasContainer').height();
+  }
+  </script>
+</body>
+</html>

@@ -6,6 +6,8 @@ var io = socket(server.listen(8080));
 
 var objectClients = {};
 
+server.use(express.static('public'));
+
 io.on('connection', function(objectSocket) {
 	var strIdent = Math.random().toString(36).substr(2,8);
 	objectClients[strIdent] = objectSocket;
@@ -23,3 +25,23 @@ io.on('connection', function(objectSocket) {
     'strFrom' : 'server',
 		'strMessage' : strIdent + ' connected'
 	});
+
+  objectSocket.on('message', function(objectData) {
+    // if the message should be recevied by everyone, broadcast it accordingly
+    // if the message has a single target, send it to this target as well as to the origin
+
+    objectData.strFrom = objectSocket.strIdent;
+    console.log('received message from' +objectData.strFrom);
+
+    io.emit('message', objectData);
+
+  });
+
+  objectSocket.on('drawing', function(objectData){
+    io.emit('drawing', objectData);
+  });
+
+
+});
+
+console.log('listening on port 8080');
