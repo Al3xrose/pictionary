@@ -22,7 +22,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">al3xrose.</a>
+          <a class="navbar-brand" href="#">pictionary</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -39,12 +39,11 @@
         </canvas>
       </div>
       <div class="col-md-4" id="chat">
-        <pre id="messages" style="height: 80vh">
-
+        Name: <input id="playerName" type="text">
+        <pre id="messages" style="height: 70vh">
         </pre>
         <input id="message" type="text" placeholder="message">
       </div>
-
     </div>
   </div>
 
@@ -62,27 +61,56 @@
 
     objectSocket.on('hello', function(objectData) {
       strIdent = objectData.strIdent;
+      jQuery('#playerName').val(strIdent);
+      if(objectData.canvasData !== undefined)
+      {
+        console.log(objectData.canvasData.toString());
+        var img = new Image();
+        img.onload=start;
+        var data = objectData.canvasData.toString();
+        img.src = data;
+        function start(){
+          context.drawImage(img, 0, 0);
+        }
+
+      }
     });
+
     objectSocket.on('message', function(objectData) {
       jQuery('#messages')
         .append(objectData.strFrom + ': ' + objectData.strMessage + '\n')
         .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
     });
+
     objectSocket.on('drawing', onDrawingEvent);
 
     //listen to enter keystroke when chat input
     //is focused
     jQuery('body')
       .keydown(function(event) {
-        if(jQuery('#message').is(":focus"))
+        if(event.keyCode == 13)
         {
-          if(event.keyCode == 13){
-            objectSocket.emit('message', {
-              'strMessage': jQuery('#message').val()
-            });
-            jQuery('#message').val('');
+          if(jQuery('#message').is(":focus"))
+          {
+              objectSocket.emit('message', {
+                'strMessage': jQuery('#message').val()
+              });
+              jQuery('#message').val('');
+          }
+          else if(jQuery('#playerName').is(":focus"))
+          {
+            jQuery('#playerName').focusout();
           }
         }
+      });
+
+      jQuery('#playerName').focusout(function(event){
+
+        strIdent = jQuery('#playerName').val();
+        objectSocket.emit('hello', {
+          'strIdent' : strIdent
+        });
+
       });
 
       canvas.addEventListener('mousedown', onMouseDown, false);
@@ -93,9 +121,8 @@
     function onMouseDown(event)
     {
       drawing = true;
-      current.x = event.clientX - jQuery('#canvasContainer').offset().left;
-      current.y = event.clientY - jQuery('#canvasContainer').offset().top;
-      console.log('mousedown');
+      current.x = event.clientX - jQuery('#canvas').offset().left;
+      current.y = event.clientY - jQuery('#canvas').offset().top;
     };
 
     function onMouseUp(event){
@@ -104,11 +131,10 @@
         drawing = false;
         drawLine(current.x,
                  current.y,
-                 event.clientX - jQuery('#canvasContainer').offset().left,
-                 event.clientY - jQuery('#canvasContainer').offset().top,
+                 event.clientX - jQuery('#canvas').offset().left,
+                 event.clientY - jQuery('#canvas').offset().top,
                  true);
       }
-      console.log('mouseup');
     }
 
     function drawLine(x0, y0, x1, y1, emit){
@@ -129,7 +155,8 @@
       x0: x0 / w,
       y0: y0 / h,
       x1: x1 / w,
-      y1: y1 / h
+      y1: y1 / h,
+      canvasData : canvas.toDataURL()
     });
   };
 
@@ -145,12 +172,13 @@
       }
     };
 }
+
 function onMouseMove(event){
     if (drawing)
     {
-      drawLine(current.x, current.y, event.clientX - jQuery('#canvasContainer').offset().left, event.clientY - jQuery('#canvasContainer').offset().top, true);
-      current.x = event.clientX - jQuery('#canvasContainer').offset().left;
-      current.y = event.clientY - jQuery('#canvasContainer').offset().top;
+      drawLine(current.x, current.y, event.clientX - jQuery('#canvas').offset().left, event.clientY - jQuery('#canvas').offset().top, true);
+      current.x = event.clientX - jQuery('#canvas').offset().left;
+      current.y = event.clientY - jQuery('#canvas').offset().top;
     }
 }
 
@@ -164,6 +192,7 @@ function onDrawingEvent(data){
       canvas.width = jQuery('#canvasContainer').width();
       canvas.height = jQuery('#canvasContainer').height();
   }
+
   </script>
 </body>
 </html>
