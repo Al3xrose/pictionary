@@ -4,6 +4,7 @@ var socket = require('socket.io');
 var server = express();
 var io = socket(server.listen(8080));
 var canvasData;
+var drawStrokes = [];
 
 var objectClients = {};
 var playerNo = 1;
@@ -15,7 +16,7 @@ io.on('connection', function(objectSocket) {
 	objectClients[strIdent] = objectSocket;
 	objectSocket.emit('hello', {
 		'strIdent' : strIdent,
-		'canvasData' : canvasData
+		'drawStrokes' : drawStrokes
 	});
 
 	objectSocket.strIdent = strIdent;
@@ -41,8 +42,7 @@ io.on('connection', function(objectSocket) {
 
   objectSocket.on('drawing', function(objectData){
 
-		canvasData = objectData.canvasData;
-		delete objectData.canvasData;
+		drawStrokes.push(objectData);
 		io.emit('drawing', objectData);
   });
 

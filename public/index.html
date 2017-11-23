@@ -62,17 +62,13 @@
     objectSocket.on('hello', function(objectData) {
       strIdent = objectData.strIdent;
       jQuery('#playerName').val(strIdent);
-      if(objectData.canvasData !== undefined)
+      if(objectData.drawStrokes !== undefined)
       {
-        console.log(objectData.canvasData.toString());
-        var img = new Image();
-        img.onload=start;
-        var data = objectData.canvasData.toString();
-        img.src = data;
-        function start(){
-          context.drawImage(img, 0, 0);
+        console.log(objectData.drawStrokes)
+        for(var i = 0; i < objectData.drawStrokes.length; i++)
+        {
+          onDrawingEvent(objectData.drawStrokes[i]);
         }
-
       }
     });
 
@@ -155,8 +151,7 @@
       x0: x0 / w,
       y0: y0 / h,
       x1: x1 / w,
-      y1: y1 / h,
-      canvasData : canvas.toDataURL()
+      y1: y1 / h
     });
   };
 
