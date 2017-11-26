@@ -9,7 +9,7 @@
 
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="http://localhost:8080/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 </head>
 
 <body>
@@ -55,6 +55,7 @@
     var strIdent = '';
     var drawing = false;
     var current = {};
+    var resizeTimer;
     console.log(canvas);
     window.addEventListener('resize', onResize, false);
     onResize();
@@ -62,14 +63,6 @@
     objectSocket.on('hello', function(objectData) {
       strIdent = objectData.strIdent;
       jQuery('#playerName').val(strIdent);
-      if(objectData.drawStrokes !== undefined)
-      {
-        console.log(objectData.drawStrokes)
-        for(var i = 0; i < objectData.drawStrokes.length; i++)
-        {
-          onDrawingEvent(objectData.drawStrokes[i]);
-        }
-      }
     });
 
     objectSocket.on('message', function(objectData) {
@@ -79,6 +72,17 @@
     });
 
     objectSocket.on('drawing', onDrawingEvent);
+
+    objectSocket.on('fullDrawing', function(objectData){
+      if(objectData.drawStrokes !== undefined)
+      {
+        console.log(objectData.drawStrokes)
+        for(var i = 0; i < objectData.drawStrokes.length; i++)
+        {
+          onDrawingEvent(objectData.drawStrokes[i]);
+        }
+      }
+    });
 
     //listen to enter keystroke when chat input
     //is focused
@@ -186,6 +190,10 @@ function onDrawingEvent(data){
   function onResize() {
       canvas.width = jQuery('#canvasContainer').width();
       canvas.height = jQuery('#canvasContainer').height();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function(){
+        objectSocket.emit('requestDrawing');
+      }, 100);
   }
 
   </script>

@@ -15,9 +15,11 @@ io.on('connection', function(objectSocket) {
 	var strIdent = 'Player' + playerNo++;
 	objectClients[strIdent] = objectSocket;
 	objectSocket.emit('hello', {
-		'strIdent' : strIdent,
-		'drawStrokes' : drawStrokes
+		'strIdent' : strIdent
 	});
+	objectSocket.emit('fullDrawing', {
+		'drawStrokes' : drawStrokes
+	})
 
 	objectSocket.strIdent = strIdent;
 	// assign a random id to the socket and store the objectSocket in the objectClients variable - example: '9T1P4pUQ'
@@ -45,6 +47,13 @@ io.on('connection', function(objectSocket) {
 		drawStrokes.push(objectData);
 		io.emit('drawing', objectData);
   });
+
+	objectSocket.on('requestDrawing', function(){
+
+		objectSocket.emit('fullDrawing',{
+			'drawStrokes' : drawStrokes
+		});
+	});
 
 	objectSocket.on('hello', function(objectData){
 		var oldname = objectSocket.strIdent;
