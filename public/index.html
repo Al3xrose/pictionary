@@ -118,6 +118,42 @@
       canvas.addEventListener('mouseout', onMouseUp, false);
       canvas.addEventListener('mousemove', throttle(onMouseMove, 10), false);
 
+      //touch event handlers [convert touch coordinates then call
+      //normal listeners
+      canvas.addEventListener('touchstart', onTouchStart, false);
+      canvas.addEventListener('touchmove', onTouchMove, false);
+      canvas.addEventListener('touchend', onTouchEnd, false);
+
+      function onTouchStart(event)
+      {
+        drawing = true;
+        current.x = event.targetTouches[0].clientX - jQuery('#canvas').offset().left;
+        current.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top;
+      }
+
+      function onTouchMove(event)
+      {
+        if (drawing)
+        {
+          drawLine(current.x, current.y, event.targetTouches[0].clientX - jQuery('#canvas').offset().left, event.targetTouches[0].clientY - jQuery('#canvas').offset().top, true);
+          current.x = event.targetTouches[0].clientX - jQuery('#canvas').offset().left;
+          current.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top;
+        }
+      }
+
+      function onTouchEnd(event)
+      {
+        if(drawing)
+        {
+          drawing = false;
+          drawLine(current.x,
+                   current.y,
+                   event.targetTouches[0].clientX - jQuery('#canvas').offset().left,
+                   event.targetTouches[0].clientY - jQuery('#canvas').offset().top,
+                   true);
+        }
+      }
+
     function onMouseDown(event)
     {
       drawing = true;
