@@ -126,7 +126,7 @@
 
       //Disable scrolling while touching canvas
       //taken from http://bencentra.com/code/2014/12/05/html5-canvas-touch-events.html
-      document.body.addEventListener("touchstart", function (e) {
+      /*document.body.addEventListener("touchstart", function (e) {
         if (e.target == canvas) {
         e.preventDefault();
         }
@@ -142,13 +142,14 @@
         if (e.target == canvas) {
           e.preventDefault();
         }
-      }, false);
+      }, false);*/
 
       function onTouchStart(event)
       {
         drawing = true;
         current.x = event.targetTouches[0].clientX - jQuery('#canvas').offset().left;
         current.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top;
+        event.preventDefault();
       }
 
       function onTouchMove(event)
@@ -159,6 +160,7 @@
           current.x = event.targetTouches[0].clientX - jQuery('#canvas').offset().left;
           current.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top;
         }
+        event.preventDefault();
       }
 
       function onTouchEnd(event)
@@ -168,10 +170,11 @@
           drawing = false;
           drawLine(current.x,
                    current.y,
-                   event.targetTouches[0].clientX - jQuery('#canvas').offset().left,
-                   event.targetTouches[0].clientY - jQuery('#canvas').offset().top,
+                   event.changedTouches[0].clientX - jQuery('#canvas').offset().left,
+                   event.changedTouches[0].clientY - jQuery('#canvas').offset().top,
                    true);
         }
+        event.preventDefault();
       }
 
     function onMouseDown(event)
