@@ -124,6 +124,26 @@
       canvas.addEventListener('touchmove', onTouchMove, false);
       canvas.addEventListener('touchend', onTouchEnd, false);
 
+      //Disable scrolling while touching canvas
+      //taken from http://bencentra.com/code/2014/12/05/html5-canvas-touch-events.html
+      document.body.addEventListener("touchstart", function (e) {
+        if (e.target == canvas) {
+        e.preventDefault();
+        }
+      }, false);
+
+      document.body.addEventListener("touchend", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, false);
+
+      document.body.addEventListener("touchmove", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, false);
+
       function onTouchStart(event)
       {
         drawing = true;
