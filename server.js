@@ -1,8 +1,9 @@
 var express = require('express');
 var socket = require('socket.io');
 
+var port = 8080;
 var server = express();
-var io = socket(server.listen(8080));
+var io = socket(server.listen(port));
 var canvasData;
 var drawStrokes = [];
 
@@ -71,4 +72,4 @@ io.on('connection', function(objectSocket) {
 	});
 });
 
-console.log('listening on port 8080');
+console.log('listening on port' + port);

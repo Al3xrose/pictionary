@@ -56,6 +56,7 @@
     var drawing = false;
     var current = {};
     var resizeTimer;
+    var strokes = [];
     console.log(canvas);
     window.addEventListener('resize', onResize, false);
     onResize();
@@ -71,16 +72,15 @@
         .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
     });
 
-    objectSocket.on('drawing', onDrawingEvent);
+    objectSocket.on('drawing', function(objectData){
+      strokes.push(objectData);
+      onDrawingEvent(objectData);
+    });
 
     objectSocket.on('fullDrawing', function(objectData){
       if(objectData.drawStrokes !== undefined)
       {
-        console.log(objectData.drawStrokes)
-        for(var i = 0; i < objectData.drawStrokes.length; i++)
-        {
-          onDrawingEvent(objectData.drawStrokes[i]);
-        }
+        drawStrokes(objectData.drawStrokes);
       }
     });
 
@@ -123,26 +123,6 @@
       canvas.addEventListener('touchstart', onTouchStart, false);
       canvas.addEventListener('touchmove', onTouchMove, false);
       canvas.addEventListener('touchend', onTouchEnd, false);
-
-      //Disable scrolling while touching canvas
-      //taken from http://bencentra.com/code/2014/12/05/html5-canvas-touch-events.html
-      /*document.body.addEventListener("touchstart", function (e) {
-        if (e.target == canvas) {
-        e.preventDefault();
-        }
-      }, false);
-
-      document.body.addEventListener("touchend", function (e) {
-        if (e.target == canvas) {
-          e.preventDefault();
-        }
-      }, false);
-
-      document.body.addEventListener("touchmove", function (e) {
-        if (e.target == canvas) {
-          e.preventDefault();
-        }
-      }, false);*/
 
       function onTouchStart(event)
       {
@@ -210,12 +190,16 @@
     var w = canvas.width;
     var h = canvas.height;
 
-    objectSocket.emit('drawing', {
+    var curStroke = {
       x0: x0 / w,
       y0: y0 / h,
       x1: x1 / w,
       y1: y1 / h
-    });
+    };
+
+    strokes.push(curStroke);
+
+    objectSocket.emit('drawing', curStroke);
   };
 
   // limit the number of events per second
@@ -251,8 +235,16 @@ function onDrawingEvent(data){
       canvas.height = jQuery('#canvasContainer').height();
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function(){
-        objectSocket.emit('requestDrawing');
+        drawStrokes(strokes);
       }, 100);
+  }
+
+  function drawStrokes(strokes)
+  {
+    for(var i = 0; i < strokes.length; i++)
+    {
+      onDrawingEvent(strokes[i]);
+    }
   }
 
   </script>
