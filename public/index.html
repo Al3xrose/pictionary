@@ -36,8 +36,8 @@
     <div class="row">
 
       <div class="col-md-8" style="height:80vh" id="canvasContainer">
-        <span id="gameStatus"></span>
         <span id="timer"></span>
+        <span id="gameStatus"></span>
         <canvas id="canvas">
         </canvas>
       </div>
@@ -65,7 +65,6 @@ jQuery(document).ready(function(){
   var strokes = [];
   var timerVar;
   var timerCount;
-  console.log(canvas);
   jQuery(document.body).on('resize', onResize);
   onResize();
 
@@ -77,7 +76,7 @@ jQuery(document).ready(function(){
     }
     else
     {
-        strIdent = objectData.strIdent;
+      strIdent = objectData.strIdent;
     }
 
     jQuery('#playerName').val(strIdent);
@@ -86,48 +85,43 @@ jQuery(document).ready(function(){
       drawStrokes(objectData.drawStrokes);
     }
 
-    jQuery('#gameStatus').text(objectData.clientDrawing
-      + ' is drawing');
+  });
+
+  objectSocket.on('message', function(objectData) {
+    jQuery('#messages')
+      .text(jQuery('#messages').text() + objectData.strFrom + ': ' + objectData.strMessage
+      + '\n')
+      .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
+  });
+
+  objectSocket.on('drawing', function(objectData){
+    strokes.push(objectData);
+    onDrawingEvent(objectData);
+  });
+
+  objectSocket.on('startRound', function(objectData){
+
+    if(objectData.clearCanvas)
+    {
+      clearCanvas();
+    }
 
     if(objectData.clientDrawing === strIdent)
     {
       clientIsDrawing();
+      jQuery('#gameStatus').text(
+        'You are drawing '
+        + objectData.word);
+    }
+    else
+    {
+      clientNotDrawing();
+      jQuery('#gameStatus').text(
+        objectData.clientDrawing +
+        ' is drawing. Guess the word!');
     }
 
-  });
-
-    objectSocket.on('message', function(objectData) {
-      jQuery('#messages')
-        .text(jQuery(this).text() + objectData.strFrom + ': ' + objectData.strMessage
-        + '\n')
-        .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
-    });
-
-    objectSocket.on('drawing', function(objectData){
-      strokes.push(objectData);
-      onDrawingEvent(objectData);
-    });
-
-    objectSocket.on('startRound', function(objectData){
-
-      clearCanvas();
-
-      if(objectData.clientDrawing === strIdent)
-      {
-        clientIsDrawing();
-        jQuery('#gameStatus').text(
-          'You are drawing '
-          + objectData.word);
-      }
-      else
-      {
-        clientNotDrawing();
-        jQuery('#gameStatus').text(
-          objectData.clientDrawing +
-          ' is drawing. Guess the word!');
-      }
-      timerCount = objectData.timerCount;
-
+    timerCount = objectData.timerCount;
     });
 
     //listen to enter keystroke when chat input
@@ -326,6 +320,7 @@ jQuery(document).ready(function(){
     jQuery('#canvas').off('touchend', onTouchEnd);
   }
 });
+
   </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 var express = require('express');
 var socket = require('socket.io');
 var escape = require('escape-html');
+var fs = require('fs');
 
 var port = 8081;
 var server = express();
@@ -15,6 +16,11 @@ var roundTimerVar;
 var objectClients = {};
 var playerNo = 1;
 var clientDrawing = "";
+var words = fs.readFileSync('wordlist.txt').toString().split("\n");
+console.log(words);
+console.log(words[2]);
+console.log(words[10]);
+var drawingWord = "";
 
 server.use(express.static('public'));
 
@@ -34,14 +40,21 @@ io.on('connection', function(objectSocket){
 			timerCount--;
 			console.log(timerCount);
 		}, 1000);
-
+		drawingWord = randomWord();
 	}
 
 	objectSocket.emit('hello', {
 		'strIdent' : strIdent,
+		'drawStrokes' : drawStrokes
+	});
+
+	console.log(drawingWord + ' is the word');
+
+	objectSocket.emit('startRound', {
 		'clientDrawing' : clientDrawing,
-		'drawStrokes' : drawStrokes,
-		'timerCount' : timerCount
+		'timerCount' : timerCount,
+		'clearCanvas' : false,
+		'word' : drawingWord
 	});
 
 	io.emit('message',{
@@ -57,6 +70,12 @@ io.on('connection', function(objectSocket){
 
 		objectData.strMessage = escape(objectData.strMessage);
     io.emit('message', objectData);
+
+		if(objectData.strMessage.includes(drawingWord))
+		{
+			console.log('word found');
+			endRound(objectData.strFrom);
+		}
   });
 
   objectSocket.on('drawing', function(objectData){
@@ -83,7 +102,7 @@ io.on('connection', function(objectSocket){
 			io.emit('message', {
 				strFrom : 'server',
 				strMessage: oldname + ' changed name to ' + newname
-			})
+			});
 		}
 	});
 
@@ -97,8 +116,6 @@ io.on('connection', function(objectSocket){
 	})
 });
 
-
-
 function startDraw(clientDrawing)
 {
 	drawStrokes = [];
@@ -109,7 +126,11 @@ function startDraw(clientDrawing)
 
 function endRound(strWinner)
 {
-	console.log('end round' + strWinner + ' is the winner');
+		if(strWinner !== "")
+		{
+			console.log(strWinner + ' is the winner');
+		}
+
 		indexDrawing = Object.keys(objectClients).indexOf(clientDrawing)
 		indexDrawing++;
 		if(indexDrawing == Object.keys(objectClients).length)
@@ -122,6 +143,7 @@ function endRound(strWinner)
 
 function startRound()
 {
+	drawingWord = randomWord();
 	drawStrokes = [];
 	clearTimeout(roundTimeoutVar);
 	clearInterval(roundTimerVar);
@@ -137,7 +159,14 @@ function startRound()
 	io.emit('startRound', {
 		'clientDrawing' : clientDrawing,
 		'timerCount' : timerCount,
-		'word' : 'word'
+		'word' : drawingWord,
+		'clearCanvas' : true
 	});
 }
+
+function randomWord()
+{
+	return words[Math.floor(Math.random() * words.length)];
+}
+
 console.log('listening on port ' + port);
