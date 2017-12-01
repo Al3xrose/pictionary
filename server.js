@@ -1,34 +1,49 @@
 var express = require('express');
 var socket = require('socket.io');
+var escape = require('escape-html');
 
-var port = 8080;
+var port = 8081;
 var server = express();
 var io = socket(server.listen(port));
 var canvasData;
 var drawStrokes = [];
+var ROUND_TIMER = 60;
+var timerCount = ROUND_TIMER;
+var roundTimeoutVar;
+var roundTimerVar;
 
 var objectClients = {};
 var playerNo = 1;
+var clientDrawing = "";
 
 server.use(express.static('public'));
 
-io.on('connection', function(objectSocket) {
+io.on('connection', function(objectSocket){
 	var strIdent = 'Player' + playerNo++;
-	objectClients[strIdent] = objectSocket;
-	objectSocket.emit('hello', {
-		'strIdent' : strIdent
-	});
-	objectSocket.emit('fullDrawing', {
-		'drawStrokes' : drawStrokes
-	})
-
 	objectSocket.strIdent = strIdent;
-	// assign a random id to the socket and store the objectSocket in the objectClients variable - example: '9T1P4pUQ'
-	// send the new client the 'hello' event, containing the assigned id - example: { 'strIdent':'9T1P4pUQ' }
-	// send everyone the 'clients' event, contianing an array of the connected clients - example: { 'objectClients':['GxwYr9Uz','9T1P4pUQ'] }
-	io.emit('clients', {
-		'strClients' : Object.keys(objectClients)
+	objectClients[strIdent] = objectSocket;
+
+	if(clientDrawing === "")
+	{
+	  clientDrawing = strIdent;
+		roundTimeoutVar = setTimeout(function(){
+			endRound("");
+		}, ROUND_TIMER * 1000);
+
+		roundTimerVar = setInterval(function(){
+			timerCount--;
+			console.log(timerCount);
+		}, 1000);
+
+	}
+
+	objectSocket.emit('hello', {
+		'strIdent' : strIdent,
+		'clientDrawing' : clientDrawing,
+		'drawStrokes' : drawStrokes,
+		'timerCount' : timerCount
 	});
+
 	io.emit('message',{
     'strFrom' : 'server',
 		'strMessage' : strIdent + ' connected'
@@ -40,6 +55,7 @@ io.on('connection', function(objectSocket) {
 
     objectData.strFrom = objectSocket.strIdent;
 
+		objectData.strMessage = escape(objectData.strMessage);
     io.emit('message', objectData);
   });
 
@@ -50,19 +66,19 @@ io.on('connection', function(objectSocket) {
   });
 
 	objectSocket.on('requestDrawing', function(){
-
 		objectSocket.emit('fullDrawing',{
 			'drawStrokes' : drawStrokes
 		});
 	});
 
-	objectSocket.on('hello', function(objectData){
+	objectSocket.on('rename', function(objectData){
 		var oldname = objectSocket.strIdent;
 		var newname = objectData.strIdent;
-		if(oldname !== newname)
+		if(oldname !== newname
+		&& !(Object.keys(objectClients).contains(newname)))
 		{
 			objectSocket.strIdent = newname;
-			objectClients[newname] = objectSocket;
+			objectClients[newname] ;
 			delete objectClients[oldname];
 			io.emit('message', {
 				strFrom : 'server',
@@ -70,6 +86,58 @@ io.on('connection', function(objectSocket) {
 			})
 		}
 	});
+
+	objectSocket.on('disconnect', function()
+	{
+		delete objectClients[objectSocket.strIdent];
+		if(clientDrawing === objectSocket.strIdent)
+		{
+			endRound("");
+		}
+	})
 });
 
-console.log('listening on port' + port);
+
+
+function startDraw(clientDrawing)
+{
+	drawStrokes = [];
+	io.emit('clientDrawing',{
+		'clientDrawing' : clientDrawing
+	});
+}
+
+function endRound(strWinner)
+{
+	console.log('end round' + strWinner + ' is the winner');
+		indexDrawing = Object.keys(objectClients).indexOf(clientDrawing)
+		indexDrawing++;
+		if(indexDrawing == Object.keys(objectClients).length)
+		{
+			indexDrawing = 0;
+		}
+		clientDrawing = Object.keys(objectClients)[indexDrawing];
+		startRound();
+}
+
+function startRound()
+{
+	drawStrokes = [];
+	clearTimeout(roundTimeoutVar);
+	clearInterval(roundTimerVar);
+	timerCount = ROUND_TIMER;
+	roundTimeoutVar = setTimeout(function(){
+		endRound("");
+	}, ROUND_TIMER * 1000);
+
+	roundTimerVar = setInterval(function(){
+		timerCount--;
+		console.log(timerCount);
+	}, 1000);
+	io.emit('startRound', {
+		'clientDrawing' : clientDrawing,
+		'timerCount' : timerCount,
+		'word' : 'word'
+	});
+}
+console.log('listening on port ' + port);
