@@ -55,7 +55,7 @@
 
 jQuery(document).ready(function(){
 
-  var objectSocket = io.connect('http://localhost:8081');
+  var objectSocket = io.connect('http://localhost:8080');
   var canvas = jQuery('#canvas')[0];
   var context = canvas.getContext('2d');
   var strIdent = '';
@@ -160,11 +160,11 @@ jQuery(document).ready(function(){
     {
       drawing = true;
       drawPosition.x = event.targetTouches[0].clientX
-      - jQuery('#canvas').offset().left
-      + jQuery(document.body).offsetTop();
-      ;
+      - jQuery('#canvas').offset().left;
 
-      drawPosition.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top;
+      drawPosition.y = event.targetTouches[0].clientY
+      - jQuery('#canvas').offset().top
+      + jQuery(document.body).scrollTop();
       event.preventDefault();
     }
 
@@ -172,9 +172,12 @@ jQuery(document).ready(function(){
     {
       if (drawing)
       {
-        drawLine(drawPosition.x, drawPosition.y, event.targetTouches[0].clientX - jQuery('#canvas').offset().left, event.targetTouches[0].clientY - jQuery('#canvas').offset().top, true);
+        drawLine(drawPosition.x, drawPosition.y, event.targetTouches[0].clientX - jQuery('#canvas').offset().left,
+        event.targetTouches[0].clientY - jQuery('#canvas').offset().top
+        + jQuery(document.body).scrollTop(), true);
         drawPosition.x = event.targetTouches[0].clientX - jQuery('#canvas').offset().left;
-        drawPosition.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top;
+        drawPosition.y = event.targetTouches[0].clientY - jQuery('#canvas').offset().top
+        + jQuery(document.body).scrollTop();
       }
       event.preventDefault();
     }
@@ -187,7 +190,8 @@ jQuery(document).ready(function(){
         drawLine(drawPosition.x,
                  drawPosition.y,
                  event.changedTouches[0].clientX - jQuery('#canvas').offset().left,
-                 event.changedTouches[0].clientY - jQuery('#canvas').offset().top,
+                 event.changedTouches[0].clientY - jQuery('#canvas').offset().top
+                 + jQuery(document.body).scrollTop(),
                  true);
       }
       event.preventDefault();
@@ -197,7 +201,8 @@ jQuery(document).ready(function(){
     {
       drawing = true;
       drawPosition.x = event.clientX - jQuery('#canvas').offset().left;
-      drawPosition.y = event.clientY - jQuery('#canvas').offset().top;
+      drawPosition.y = event.clientY - jQuery('#canvas').offset().top
+      + jQuery(document.body).scrollTop();
     };
 
     function onMouseUp(event){
@@ -207,7 +212,8 @@ jQuery(document).ready(function(){
         drawLine(drawPosition.x,
                  drawPosition.y,
                  event.clientX - jQuery('#canvas').offset().left,
-                 event.clientY - jQuery('#canvas').offset().top,
+                 event.clientY - jQuery('#canvas').offset().top
+                 + jQuery(document.body).scrollTop(),
                  true);
       }
     }
@@ -220,7 +226,6 @@ jQuery(document).ready(function(){
       context.lineWidth = 2;
       context.stroke();
       context.closePath();
-      console.log("draw");
 
       if (!emit) { return; }
       var w = canvas.width;
@@ -254,9 +259,12 @@ jQuery(document).ready(function(){
   function onMouseMove(event){
     if (drawing)
     {
-      drawLine(drawPosition.x, drawPosition.y, event.clientX - jQuery('#canvas').offset().left, event.clientY - jQuery('#canvas').offset().top, true);
+      drawLine(drawPosition.x, drawPosition.y, event.clientX - jQuery('#canvas').offset().left,
+      event.clientY - jQuery('#canvas').offset().top
+      + jQuery(document.body).scrollTop(), true);
       drawPosition.x = event.clientX - jQuery('#canvas').offset().left;
-      drawPosition.y = event.clientY - jQuery('#canvas').offset().top;
+      drawPosition.y = event.clientY - jQuery('#canvas').offset().top
+      + jQuery(document.body).scrollTop();
     }
   }
 

@@ -3,7 +3,7 @@ var socket = require('socket.io');
 var escape = require('escape-html');
 var fs = require('fs');
 
-var port = 8081;
+var port = 8080;
 var server = express();
 var io = socket(server.listen(port));
 var canvasData;
@@ -17,9 +17,6 @@ var objectClients = {};
 var playerNo = 1;
 var clientDrawing = "";
 var words = fs.readFileSync('wordlist.txt').toString().split("\n");
-console.log(words);
-console.log(words[2]);
-console.log(words[10]);
 var drawingWord = "";
 
 server.use(express.static('public'));
@@ -48,8 +45,6 @@ io.on('connection', function(objectSocket){
 		'drawStrokes' : drawStrokes
 	});
 
-	console.log(drawingWord + ' is the word');
-
 	objectSocket.emit('startRound', {
 		'clientDrawing' : clientDrawing,
 		'timerCount' : timerCount,
@@ -73,7 +68,6 @@ io.on('connection', function(objectSocket){
 
 		if(objectData.strMessage.includes(drawingWord))
 		{
-			console.log('word found');
 			endRound(objectData.strFrom);
 		}
   });
