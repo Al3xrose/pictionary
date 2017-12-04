@@ -78,12 +78,6 @@ io.on('connection', function(objectSocket){
 		io.emit('drawing', objectData);
   });
 
-	objectSocket.on('requestDrawing', function(){
-		objectSocket.emit('fullDrawing',{
-			'drawStrokes' : drawStrokes
-		});
-	});
-
 	objectSocket.on('rename', function(objectData){
 		var oldname = objectSocket.strIdent;
 		var newname = objectData.strIdent;
@@ -102,6 +96,7 @@ io.on('connection', function(objectSocket){
 
 	objectSocket.on('disconnect', function()
 	{
+
 		delete objectClients[objectSocket.strIdent];
 		if(clientDrawing === objectSocket.strIdent)
 		{
@@ -120,19 +115,30 @@ function startDraw(clientDrawing)
 
 function endRound(strWinner)
 {
-		if(strWinner !== "")
-		{
-			console.log(strWinner + ' is the winner');
-		}
+	drawStrokes = [];
 
-		indexDrawing = Object.keys(objectClients).indexOf(clientDrawing)
-		indexDrawing++;
-		if(indexDrawing == Object.keys(objectClients).length)
-		{
-			indexDrawing = 0;
-		}
-		clientDrawing = Object.keys(objectClients)[indexDrawing];
+	if(strWinner !== "")
+	{
+		console.log(strWinner + ' is the winner');
+	}
+
+	indexDrawing = Object.keys(objectClients).indexOf(clientDrawing);
+	indexDrawing++;
+
+	if(indexDrawing == Object.keys(objectClients).length)
+	{
+		indexDrawing = 0;
+	}
+
+	clientDrawing = Object.keys(objectClients)[indexDrawing];
+	if(Object.keys(objectClients).length !== 0)
+	{
 		startRound();
+	}
+
+	clearTimeout(roundTimeoutVar);
+	clearInterval(roundTimerVar);
+
 }
 
 function startRound()
@@ -150,6 +156,7 @@ function startRound()
 		timerCount--;
 		console.log(timerCount);
 	}, 1000);
+
 	io.emit('startRound', {
 		'clientDrawing' : clientDrawing,
 		'timerCount' : timerCount,
