@@ -98,7 +98,13 @@ jQuery(document).ready(function(){
 
   objectSocket.on('message', function(objectData) {
     var $newMsg = jQuery('<span></span>');
-    $newMsg.text(objectData.strFrom + ': ' + objectData.strMessage + '\n');
+
+    if(objectData.strFrom !== undefined)
+    {
+      $newMsg.text(objectData.strFrom + ': ');
+    }
+
+    $newMsg.text($newMsg.text() + objectData.strMessage + '\n');
 
     if(objectData.color !== undefined)
     {

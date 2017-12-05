@@ -57,8 +57,9 @@ io.on('connection', function(objectSocket){
 	objectSocket.on('rename', function(objectData){
 		objectSocket.nickName = objectData.nickName;
 		io.emit('message', {
-			'strFrom' : 'server',
-			'strMessage' : objectSocket.nickName + ' has connected'
+			//'strFrom' : 'server',
+			'strMessage' : objectSocket.nickName + ' has connected',
+			'color' : 'grey'
 		});
 		if(clientDrawing === "")
 		{
@@ -91,10 +92,10 @@ io.on('connection', function(objectSocket){
 			endRound("", objectSocket.nickName);
 		}
 		io.emit('message', {
-			'strFrom' : 'server',
-			'strMessage' : objectSocket.nickName + ' disconnected'
+			//'strFrom' : 'server',
+			'strMessage' : objectSocket.nickName + ' disconnected',
+			'color' : 'grey'
 		});
-		console.log(Object.keys(objectClients).length + ' players remaining');
 	})
 });
 
@@ -115,7 +116,7 @@ function endRound(strWinner, clientDrawingNickName)
 	if(strWinner === "")
 	{
 		io.emit('message', {
-			'strFrom' : 'server',
+			//'strFrom' : 'server',
 			'strMessage' : 'No one guessed ' + clientDrawingNickName
 			  + "'s word: " + drawingWord,
 				'color' : 'red'
@@ -123,7 +124,7 @@ function endRound(strWinner, clientDrawingNickName)
 	}
 	else {
 		io.emit('message', {
-			'strFrom' : 'server',
+			//'strFrom' : 'server',
 			'strMessage' : strWinner + ' correctly guessed ' + clientDrawingNickName
 			+ "'s word: " + drawingWord,
 			'color' : 'green'
@@ -175,7 +176,7 @@ function startRound()
 
 function randomWord()
 {
-	return words[Math.floor(Math.random() * words.length)];
+	return words[Math.floor(Math.random() * words.length - 1)];
 }
 
 console.log('listening on port ' + port);
