@@ -43,7 +43,7 @@ io.on('connection', function(objectSocket){
 		objectData.strMessage = escape(objectData.strMessage);
     io.emit('message', objectData);
 
-		if(objectData.strMessage.includes(drawingWord))
+		if(objectData.strMessage.toUpperCase().includes(drawingWord.toUpperCase()))
 		{
 			endRound(objectData.strFrom, objectClients[clientDrawing].nickName);
 		}
