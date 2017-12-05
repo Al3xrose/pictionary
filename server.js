@@ -45,7 +45,7 @@ io.on('connection', function(objectSocket){
 
 		if(objectData.strMessage.includes(drawingWord))
 		{
-			endRound(objectData.strFrom);
+			endRound(objectData.strFrom, objectClients[clientDrawing].nickName);
 		}
   });
 
@@ -65,7 +65,7 @@ io.on('connection', function(objectSocket){
 		{
 		  clientDrawing = objectSocket.strIdent;
 			roundTimeoutVar = setTimeout(function(){
-				endRound("");
+				endRound("", objectClients[clientDrawing].nickName);
 			}, ROUND_TIMER * 1000);
 
 			roundTimerVar = setInterval(function(){
@@ -89,7 +89,7 @@ io.on('connection', function(objectSocket){
 		delete objectClients[objectSocket.strIdent];
 		if(clientDrawing === objectSocket.strIdent)
 		{
-			endRound("");
+			endRound("", objectSocket.nickName);
 		}
 		io.emit('message', {
 			'strFrom' : 'server',
@@ -107,15 +107,26 @@ function startDraw(clientDrawing)
 	});
 }
 
-function endRound(strWinner)
+function endRound(strWinner, clientDrawingNickName)
 {
 	clearTimeout(roundTimeoutVar);
 	clearInterval(roundTimerVar);
 	drawStrokes = [];
 
-	if(strWinner !== "")
+	if(strWinner === "")
 	{
-		console.log(strWinner + ' is the winner');
+		io.emit('message', {
+			'strFrom' : 'server',
+			'strMessage' : 'No one guessed ' + clientDrawingNickName
+			  + "'s word: " + drawingWord
+		});
+	}
+	else {
+		io.emit('message', {
+			'strFrom' : 'server',
+			'strMessage' : strWinner + ' correctly guessed ' + clientDrawingNickName
+			+ "'s word: " + drawingWord
+		});
 	}
 
 	indexDrawing = Object.keys(objectClients).indexOf(clientDrawing);
@@ -144,7 +155,7 @@ function startRound()
 	clearInterval(roundTimerVar);
 	timerCount = ROUND_TIMER;
 	roundTimeoutVar = setTimeout(function(){
-		endRound("");
+		endRound("", objectClients[clientDrawing].nickName);
 	}, ROUND_TIMER * 1000);
 
 	roundTimerVar = setInterval(function(){
