@@ -7,6 +7,7 @@
 
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
+  <link rel="stylesheet" type="text/css" href="styles.css" />
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="/socket.io/socket.io.js"></script>
@@ -24,11 +25,22 @@
     </nav>
 
     <div class="container">
+      <span id="timer" style="font-size: 3em"></span>
+      <span id="gameStatus"></span>
+      <span id="word"></span>
+      <!--
     <div class="row">
-
+      <div class="col-xs-1 colors" id="black" visible="false"></div>
+      <div class="col-xs-1 colors" id="red" visible="false"></div>
+      <div class="col-xs-1 colors" id="green" visible="false"></div>
+      <div class="col-xs-1 colors" id="blue" visible="false"></div>
+      <div class="col-xs-1 colors" id="yellow" visible="false"></div>
+      <div class="col-xs-1 colors" id="brown" visible="false"></div>
+    </div>
+  -->
+    <div class="row">
       <div class="col-xs-8" style="height:80vh" id="canvasContainer">
-        <span id="timer" style="font-size: 3em"></span>
-        <span id="gameStatus"></span>
+
         <canvas id="canvas">
         </canvas>
       </div>
@@ -85,10 +97,25 @@ jQuery(document).ready(function(){
   });
 
   objectSocket.on('message', function(objectData) {
+    var $newMsg = jQuery('<span></span>');
+    $newMsg.text(objectData.strFrom + ': ' + objectData.strMessage + '\n');
+
+    if(objectData.color !== undefined)
+    {
+      console.log('color green!');
+      $newMsg.css("color", objectData.color);
+    }
+
+
+    jQuery('#messages').append($newMsg)
+    .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
+
+    /*
     jQuery('#messages')
       .text(jQuery('#messages').text() + objectData.strFrom + ': ' + objectData.strMessage
       + '\n')
       .prop('scrollTop', jQuery('#messages').prop('scrollHeight'));
+      */
   });
 
   objectSocket.on('drawing', function(objectData){
@@ -108,10 +135,9 @@ jQuery(document).ready(function(){
     {
       clientIsDrawing();
       jQuery('#gameStatus').text(
-        'You are drawing '
-        + objectData.word)
-        .css("font-size", "2em")
-        .css("color", "red");
+        'You are drawing ')//
+        .css("font-size", "2em");
+      jQuery('#word').text(objectData.word.toUpperCase());
     }
     else
     {
@@ -121,6 +147,8 @@ jQuery(document).ready(function(){
         ' is drawing. Guess the word!')
         .css("font-size", "2em")
         .css("color", "black");
+
+      jQuery('#word').text("");
     }
 
     timerCount = objectData.timerCount;
@@ -191,7 +219,7 @@ jQuery(document).ready(function(){
       drawPosition.x = event.clientX - jQuery('#canvas').offset().left;
       drawPosition.y = event.clientY - jQuery('#canvas').offset().top
       + jQuery(document.body).scrollTop();
-    };
+    }
 
     function onMouseUp(event){
       if(drawing)
@@ -301,6 +329,8 @@ jQuery(document).ready(function(){
     jQuery('#canvas').on('touchstart', onTouchStart);
     jQuery('#canvas').on('touchmove', onTouchMove);
     jQuery('#canvas').on('touchend', onTouchEnd);
+
+
   }
 
   function clientNotDrawing()

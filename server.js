@@ -50,7 +50,6 @@ io.on('connection', function(objectSocket){
   });
 
   objectSocket.on('drawing', function(objectData){
-
 		drawStrokes.push(objectData);
 		io.emit('drawing', objectData);
   });
@@ -118,14 +117,16 @@ function endRound(strWinner, clientDrawingNickName)
 		io.emit('message', {
 			'strFrom' : 'server',
 			'strMessage' : 'No one guessed ' + clientDrawingNickName
-			  + "'s word: " + drawingWord
+			  + "'s word: " + drawingWord,
+				'color' : 'green'
 		});
 	}
 	else {
 		io.emit('message', {
 			'strFrom' : 'server',
 			'strMessage' : strWinner + ' correctly guessed ' + clientDrawingNickName
-			+ "'s word: " + drawingWord
+			+ "'s word: " + drawingWord,
+			'color' : 'green'
 		});
 	}
 
