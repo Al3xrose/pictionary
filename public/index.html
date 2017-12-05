@@ -16,33 +16,23 @@
     <nav class="navbar navbar-inverse navbar-static-top">
       <div class="container">
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">draw words</a>
+          <a class="navbar-brand" href="#">pictionary</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">home</a></li>
-          </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
-    <div class="container-fluid">
+    <div class="container">
     <div class="row">
 
       <div class="col-xs-8" style="height:80vh" id="canvasContainer">
-        <span id="timer"></span>
+        <span id="timer" style="font-size: 3em"></span>
         <span id="gameStatus"></span>
         <canvas id="canvas">
         </canvas>
       </div>
       <div class="col-xs-4" id="chat">
-        Name: <input id="playerName" type="text">
         <pre id="messages" style="height: 70vh">
         </pre>
         <input id="message" type="text" placeholder="message">
@@ -55,7 +45,6 @@
 
 jQuery(document).ready(function(){
 
-  var objectSocket = io.connect('http://localhost:8080');
   var canvas = jQuery('#canvas')[0];
   var context = canvas.getContext('2d');
   var strIdent = '';
@@ -68,18 +57,26 @@ jQuery(document).ready(function(){
   jQuery(document.body).on('resize', onResize);
   onResize();
 
-  objectSocket.on('hello', function(objectData) {
-    if(typeof(Storage) !== undefined
-      && typeof(localStorage.strIdent) === "string")
-    {
-      strIdent = localStorage.strIdent;
-    }
-    else
-    {
-      strIdent = objectData.strIdent;
-    }
+  var playerName = prompt('Enter a name');
 
-    jQuery('#playerName').val(strIdent);
+
+  var objectSocket = io.connect('http://localhost:8080');
+
+
+  objectSocket.on('hello', function(objectData) {
+
+    strIdent = objectData.strIdent;
+
+    if(playerName === null ||
+       playerName === "")
+       {
+         playerName = objectData.nickName;
+       }
+
+    objectSocket.emit('rename', {
+      'nickName' : playerName
+    });
+
     if(objectData.drawStrokes !== undefined)
     {
       drawStrokes(objectData.drawStrokes);
@@ -101,6 +98,7 @@ jQuery(document).ready(function(){
 
   objectSocket.on('startRound', function(objectData){
 
+    clearInterval(timerVar);
     if(objectData.clearCanvas)
     {
       clearCanvas();
@@ -111,17 +109,23 @@ jQuery(document).ready(function(){
       clientIsDrawing();
       jQuery('#gameStatus').text(
         'You are drawing '
-        + objectData.word);
+        + objectData.word)
+        .css("font-size", "2em")
+        .css("color", "red");
     }
     else
     {
       clientNotDrawing();
       jQuery('#gameStatus').text(
-        objectData.clientDrawing +
-        ' is drawing. Guess the word!');
+        objectData.clientDrawingNickName +
+        ' is drawing. Guess the word!')
+        .css("font-size", "2em")
+        .css("color", "black");
     }
 
     timerCount = objectData.timerCount;
+    jQuery("#timer").text(timerCount);
+    timerVar = setInterval(decrementTimer, 1000);
     });
 
     //listen to enter keystroke when chat input
@@ -137,23 +141,7 @@ jQuery(document).ready(function(){
             });
             jQuery('#message').val('');
           }
-          else if(jQuery('#playerName').is(":focus"))
-          {
-            jQuery('#playerName').focusout();
-          }
         }
-    });
-
-    jQuery('#playerName').focusout(function(event){
-
-      strIdent = jQuery('#playerName').val();
-      if(typeof(localStorage) !== undefined)
-      {
-        document.window.sessionStorage.strIdent = strIdent;
-      }
-      objectSocket.emit('rename', {
-        'strIdent' : strIdent
-      });
     });
 
     function onTouchStart(event)
@@ -328,8 +316,12 @@ jQuery(document).ready(function(){
     jQuery('#canvas').off('touchmove', onTouchMove);
     jQuery('#canvas').off('touchend', onTouchEnd);
   }
-});
 
+  function decrementTimer(){
+    timerCount--;
+    jQuery('#timer').text(timerCount);
+  }
+});
   </script>
 </body>
 </html>
