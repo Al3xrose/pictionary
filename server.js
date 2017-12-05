@@ -118,7 +118,7 @@ function endRound(strWinner, clientDrawingNickName)
 			'strFrom' : 'server',
 			'strMessage' : 'No one guessed ' + clientDrawingNickName
 			  + "'s word: " + drawingWord,
-				'color' : 'green'
+				'color' : 'red'
 		});
 	}
 	else {
