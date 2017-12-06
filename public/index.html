@@ -28,16 +28,9 @@
       <span id="timer" style="font-size: 3em"></span>
       <span id="gameStatus"></span>
       <span id="word"></span>
-      <!--
-    <div class="row">
-      <div class="col-xs-1 colors" id="black" visible="false"></div>
-      <div class="col-xs-1 colors" id="red" visible="false"></div>
-      <div class="col-xs-1 colors" id="green" visible="false"></div>
-      <div class="col-xs-1 colors" id="blue" visible="false"></div>
-      <div class="col-xs-1 colors" id="yellow" visible="false"></div>
-      <div class="col-xs-1 colors" id="brown" visible="false"></div>
-    </div>
-  -->
+      <br>
+      <button id="clearCanvasButton" style="visibility:hidden">clear</button>
+
     <div class="row">
       <div class="col-xs-8" style="height:80vh" id="canvasContainer">
 
@@ -73,6 +66,9 @@ jQuery(document).ready(function(){
 
   var objectSocket = io.connect('http://localhost:8080');
 
+  jQuery('#clearCanvasButton').on('click', function(){
+    objectSocket.emit('clearCanvas', {});
+  });
 
   objectSocket.on('hello', function(objectData) {
 
@@ -159,6 +155,10 @@ jQuery(document).ready(function(){
     timerCount = objectData.timerCount;
     jQuery("#timer").text(timerCount);
     timerVar = setInterval(decrementTimer, 1000);
+    });
+
+    objectSocket.on('clearCanvas', function(objectData){
+      clearCanvas();
     });
 
     //listen to enter keystroke when chat input
@@ -335,6 +335,8 @@ jQuery(document).ready(function(){
     jQuery('#canvas').on('touchmove', onTouchMove);
     jQuery('#canvas').on('touchend', onTouchEnd);
 
+    //make clear canvas button visible
+    jQuery('#clearCanvasButton').css('visibility', 'visible');
 
   }
 
@@ -350,6 +352,9 @@ jQuery(document).ready(function(){
     jQuery('#canvas').off('touchstart', onTouchStart);
     jQuery('#canvas').off('touchmove', onTouchMove);
     jQuery('#canvas').off('touchend', onTouchEnd);
+
+    //make clear canvas button invisible
+    jQuery('#clearCanvasButton').css('visibility', 'hidden');
   }
 
   function decrementTimer(){

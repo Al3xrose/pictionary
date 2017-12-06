@@ -73,6 +73,7 @@ io.on('connection', function(objectSocket){
 				console.log(timerCount);
 			}, 1000);
 			drawingWord = randomWord();
+			timerCount=60;
 		}
 
 			objectSocket.emit('startRound', {
@@ -96,7 +97,12 @@ io.on('connection', function(objectSocket){
 			'strMessage' : objectSocket.nickName + ' disconnected',
 			'color' : 'grey'
 		});
-	})
+	});
+
+	objectSocket.on('clearCanvas', function(){
+		drawStrokes = [];
+		io.emit('clearCanvas', {});
+	});
 });
 
 function startDraw(clientDrawing)
