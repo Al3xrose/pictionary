@@ -45,8 +45,7 @@
         </canvas>
       </div>
       <div class="col-xs-4" id="chat">
-        <pre id="messages" style="height: 70vh; white-space: pre-wrap;">
-        </pre>
+        <pre id="messages" style="height: 70vh; white-space: pre-wrap;"></pre>
         <input id="message" type="text" placeholder="message">
       </div>
     </div>
@@ -141,7 +140,7 @@ jQuery(document).ready(function(){
     {
       clientIsDrawing();
       jQuery('#gameStatus').text(
-        'You are drawing ')//
+        'You are drawing ')
         .css("font-size", "2em");
       jQuery('#word').text(objectData.word.toUpperCase());
     }
